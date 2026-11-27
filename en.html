@@ -216,6 +216,12 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
 #stress-h:empty, #stress-later:empty { display: none; }
 .stress-later { margin: 0; font-size: 0.9rem; font-weight: 600; background: var(--surface-2); border-radius: 9px; padding: 9px 12px; }
 .taxbox { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; }
+.pdfrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
+.pdfrow:has(.pdfbtn[hidden]) { display: none; }
+.pdfbtn { font: inherit; font-weight: 700; font-size: 0.9rem; padding: 9px 16px; min-height: 40px; border-radius: 9px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; justify-self: start; }
+.pdfbtn:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.pdfbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pdfrow .hint { margin: 0; }
 .taxbox ul { margin: 4px 0 6px; padding-left: 18px; }
 .smalls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 @media (max-width: 760px) { .smalls { grid-template-columns: minmax(0, 1fr); } }
@@ -356,20 +362,18 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
           <div class="ctl">
             <div class="ctl-head"><label for="inf">Average inflation</label><output id="inf-o" for="inf"></output></div>
             <input type="range" id="inf" min="0" max="5" step="0.25" value="2">
+            <p class="hint">The returns above apply at 2% inflation. With higher inflation, bonds and the money market rise fully with it on average, equities by three quarters; with lower inflation they fall accordingly.</p>
           </div>
-          <div class="ctl">
-            <div class="ctl-head"><label for="tax">Tax share of the withdrawal</label><output id="tax-o" for="tax"></output></div>
-            <input type="range" id="tax" min="0" max="30" step="1" value="16">
-            <div class="taxbox">
-              <strong>Already included (German tax rules):</strong>
-              <ul>
-                <li>flat-rate capital gains tax (Abgeltungsteuer) plus solidarity surcharge, together 26.375% on gains</li>
-                <li>the partial exemption (Teilfreistellung): 30% of gains from equity ETFs are tax-free</li>
-                <li>the saver's allowance of €1,000 per year (Freistellungsauftrag)</li>
-              </ul>
-              <strong>Not included:</strong> church tax.<br>
-              16% fits the Three-Pot plan at around €700,000. For a married couple with a €2,000 allowance, about 15%; with church tax, about 17%.
-            </div>
+          <div class="taxbox">
+            <strong>Taxes are calculated as in a real German account, with fixed assumptions:</strong>
+            <ul>
+              <li>flat-rate capital gains tax (Abgeltungsteuer) plus solidarity surcharge, together 26.375% on gains; no church tax</li>
+              <li>partial exemption (Teilfreistellung): 30% of gains from the equity ETF are tax-free, none for bonds and money market</li>
+              <li>saver's allowance of €1,000 a year</li>
+              <li>advance lump sum (Vorabpauschale) every year, with the 2026 base rate of 3.2%; it rises and falls with inflation</li>
+              <li>at the start, 30% of Pot 3 is already unrealised gain</li>
+            </ul>
+            Tax is due on every sale, including when the pots are refilled, and is paid from Pot 1. Losses are offset against later gains.
           </div>
 
           <h3>Pots</h3>
@@ -441,6 +445,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div class="meter" aria-hidden="true"><i id="meter"></i></div>
         <p id="subline"></p>
         <p class="hint" id="tip95"></p>
+        <div class="pdfrow"><button type="button" class="pdfbtn" id="pdf-b" hidden>Save as PDF</button><span class="hint" id="pdf-s" aria-live="polite"></span></div>
       </section>
 
       <div class="card-head" style="margin-bottom:-8px">
@@ -451,7 +456,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         </div>
       </div>
       <div class="kpis four">
-        <div class="kpi"><span class="k">Monthly from the portfolio</span><span class="v" id="k-gross"></span><span class="s" id="k-gross-s"></span></div>
+        <div class="kpi"><span class="k">Tax per month</span><span class="v" id="k-gross"></span><span class="s" id="k-gross-s"></span></div>
         <div class="kpi"><span class="k" id="k-cut-l"></span><span class="v" id="k-cut"></span><span class="s" id="k-cut-s"></span></div>
         <div class="kpi"><span class="k">In the portfolio after 10 years</span><span class="v" id="k-10"></span><span class="s" id="k-10-s"></span></div>
         <div class="kpi"><span class="k" id="k-end-l"></span><span class="v" id="k-end"></span><span class="s">typical case</span></div>
@@ -519,7 +524,8 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div style="display:grid;gap:8px;margin-top:10px">
           <p><strong>Process:</strong> Every year, Pot 1 is topped up again. If equities are no more than 10% below their peak, the money comes from Pot 3, and Pot 2 is topped up too. If they are lower, it comes from Pot 2 and the equities are left alone.</p>
           <p><strong>Flexible withdrawal:</strong> Each year the withdrawal is adjusted so that you take the same share of the portfolio as at the start. It only changes within the limits you chose, though, and never falls below your minimum.</p>
-          <p><strong>Model:</strong> Market years with more frequent extreme years, fluctuating inflation, and bonds that fall together with equities during inflation spikes, as in 2022. The stress test shows long dry spells. Ongoing costs are deducted from all returns.</p>
+          <p><strong>Model:</strong> Market years with more frequent extreme years, fluctuating inflation, and bonds that fall together with equities during inflation spikes, as in 2022. The stress test shows long dry spells. Ongoing costs are deducted from all returns. The returns you set apply at 2% inflation; if inflation differs, bonds and the money market follow it fully, equities by three quarters.</p>
+          <p><strong>Taxes:</strong> Every sale is taxed as in a real German account, including when the pots are refilled: capital gains tax plus solidarity surcharge on the gain, with partial exemption, saver's allowance and the annual advance lump sum. Fixed assumptions: 30% unrealised gain in Pot 3 at the start, €1,000 allowance, base rate 3.2%. In poor market years there is hardly any tax, in good years more. The comparison portfolio is taxed the same way, but its annual rebalancing is treated as tax-free.</p>
           <p><strong>For comparison:</strong> <span id="cmix-h"></span></p>
           <p><strong>Research:</strong> A study using data from 38 countries finds a safe withdrawal of about 2.3 to 3% of starting capital per year. Pots add no extra safety compared with a simple, mixed portfolio; their advantage is that you stay calm in a crisis. Flexible withdrawals make a plan considerably safer.</p>
           <p><strong>Not included:</strong> state pension, church tax. A model calculation, not a forecast and not investment advice.</p>
@@ -599,6 +605,13 @@ function genPath(p, i, Y) {
       // or directly a mixed euro bond index (bdMix)
       RB[y] = st.bd[ys] / 100 + (st.bdMix ? 0 : p.corp * (0.0075 + 0.15 * Math.min(0, eqShock)));
     }
+    if (p.shift) {
+      // Returns apply at 2% inflation: bonds and money market follow the average fully, equities by three quarters (as in the savings and withdrawal calculator)
+      const sh = m - 0.02;
+      if (!(st && ys >= 0 && ys < st.eq.length)) RE[y] += 0.75 * sh;
+      if (!(st && st.bd && ys >= 0 && ys < st.bd.length)) RB[y] += sh;
+      RC[y] += sh;
+    }
     const tc = p.ter || 0; RE[y] -= tc; RB[y] -= tc; RC[y] -= tc; // ongoing costs (TER)
     IN[y] = inf; prev = inf;
   }
@@ -622,12 +635,15 @@ function nextRate(s, p, total, portRet, inf, left, keep, defl) {
 
 function simulate(p, lite) {
   const Y = Math.max(1, p.age1 - p.age0);
-  const keep = 1 - p.tax;
+  const RT = !!p.realTax, keep = RT ? 1 : 1 - p.tax;
+  // Tax as in a real German account, with fixed assumptions: capital gains tax plus solidarity surcharge, 30% partial exemption for the equity ETF,
+  // €1,000 saver's allowance, advance lump sum (Vorabpauschale) with a 3.2% base rate (follows inflation), 30% unrealised gain in Pot 3 at the start
+  const TR = 0.26375, FB = 1000, bzE = Math.max(0, 0.032 + p.inf - 0.02), g0 = p.gain0 || 0;
   const g = p.indexed ? 1 + p.inf : 1;
   const geo = (from, to) => { let s = 0; for (let k = from; k < to; k++) s += Math.pow(g, k); return s; };
   const totR = lite ? null : new Float64Array((Y + 1) * N), totN = lite ? null : new Float64Array((Y + 1) * N);
   const rateR = lite ? null : new Float64Array(Y * N), rateN = lite ? null : new Float64Array(Y * N);
-  const minRate = new Float64Array(N);
+  const minRate = new Float64Array(N), tax10 = new Float64Array(N), tax10N = new Float64Array(N);
   let fails = 0, mixFails = 0, floorOk = 0, mixFloorOk = 0; const failAges = [];
   const w0 = p.net * 12 / keep;
   const split = c => { const a = Math.min(c, w0 * geo(0, Math.min(p.y1, Y))); const b = Math.min(c - a, w0 * geo(Math.min(p.y1, Y), Math.min(p.y1 + p.y2, Y))); return { t1: a, t2: b, t3: c - a - b }; };
@@ -642,6 +658,13 @@ function simulate(p, lite) {
     genPath(p, i, Y);
     // --- Three pots ---
     let t1 = s1, t2 = s2, t3 = start.t3, idx = 1, hi = 1, defl = 1, dead = false;
+    let b1 = t1, b2 = t2, b3 = t3 * (1 - g0), pool = 0, carry = 0, vpPend = 0;
+    // Sale from a pot: the cost basis falls pro rata, the taxable gain accumulates over the year
+    const sell = (k, a) => { if (!RT || a <= 0) return;
+      if (k === 1) { const f = t1 > 0 ? a / t1 : 0, b = b1 * f; pool += a - b; b1 -= b; }
+      else if (k === 2) { const f = t2 > 0 ? a / t2 : 0, b = b2 * f; pool += a - b; b2 -= b; }
+      else { const f = t3 > 0 ? a / t3 : 0, b = b3 * f; pool += (a - b) * 0.7; b3 -= b; } };
+    let mb = p.cap * (1 - wE * g0), mpool = 0, mcarry = 0, mvp = 0;
     const st = { base: p.net, iwr };
     let mn = Infinity;
     if (!lite) { totR[i] = p.cap; totN[i] = p.cap; }
@@ -653,17 +676,17 @@ function simulate(p, lite) {
       // one-off payments at the start of the year
       if (p.flows) for (const f of p.flows) {
         if (f.y !== y) continue;
-        if (!mdead) { if (f.type === "in") mw += f.amt * mdefl; else { const g = f.amt * mdefl / keep; if (mw < g) { mw = 0; } else mw -= g; } }
+        if (!mdead) { if (f.type === "in") { mw += f.amt * mdefl; mb += f.amt * mdefl; } else { const g = f.amt * mdefl / keep; if (mw < g) { mw = 0; } else { if (RT) { const b = mb * g / mw; mpool += (g - b) * (1 - 0.3 * wE); mb -= b; } mw -= g; } } }
         if (!dead) {
-          if (f.type === "in") t3 += f.amt * defl;
+          if (f.type === "in") { t3 += f.amt * defl; b3 += f.amt * defl; }
           else {
             let g = f.amt * defl / keep, m;
             const order = idx >= 0.9 * hi ? [3, 2, 1] : [2, 3, 1];
             for (const k of order) {
               if (g <= 0) break;
-              if (k === 3) { m = Math.min(g, t3); t3 -= m; g -= m; }
-              else if (k === 2) { m = Math.min(g, t2); t2 -= m; g -= m; }
-              else { m = Math.min(g, t1); t1 -= m; g -= m; }
+              if (k === 3) { m = Math.min(g, t3); sell(3, m); t3 -= m; g -= m; }
+              else if (k === 2) { m = Math.min(g, t2); sell(2, m); t2 -= m; g -= m; }
+              else { m = Math.min(g, t1); sell(1, m); t1 -= m; g -= m; }
             }
             if (g > 1e-6) { t1 = t2 = t3 = 0; }
           }
@@ -675,8 +698,16 @@ function simulate(p, lite) {
         if (ms.base / mdefl < mmn) mmn = ms.base / mdefl;
         if (mw < w - 1e-6) { mdead = true; mixFails++; }
         else {
+          if (RT && mw > 0) { const b = mb * w / mw; mpool += (w - b) * (1 - 0.3 * wE); mb -= b; }
           const after = mw - w;
           mw = after * (1 + wE * RE[y] + wB * RB[y] + wC * RC[y]);
+          if (RT) {
+            const vp = Math.max(0, Math.min(after * bzE * 0.7, mw - after)); mb += vp;
+            const e = mvp + mpool - mcarry; mcarry = e < 0 ? -e : 0;
+            const tx = e > 0 ? TR * Math.max(0, e - FB) : 0;
+            if (tx > 0) { const b = mw > 0 ? mb * Math.min(1, tx / mw) : 0; mb -= b; mw = Math.max(0, mw - tx); }
+            mvp = vp * (1 - 0.3 * wE); mpool = 0;
+          }
           if (y < Y - 1) nextRate(ms, p, mw, after > 0 ? mw / after - 1 : 0, IN[y], left, keep, mdefl * (1 + IN[y]));
         }
       }
@@ -685,9 +716,9 @@ function simulate(p, lite) {
       if (dead) { if (!lite) { rateR[y * N + i] = 0; rateN[y * N + i] = 0; totR[(y + 1) * N + i] = 0; totN[(y + 1) * N + i] = 0; } defl *= 1 + IN[y]; continue; }
       const rate = st.base, w = rate * 12 / keep;
       let need = w, m;
-      m = Math.min(need, t1); t1 -= m; need -= m;
-      if (need > 0) { m = Math.min(need, t2); t2 -= m; need -= m; }
-      if (need > 0) { m = Math.min(need, t3); t3 -= m; need -= m; }
+      m = Math.min(need, t1); sell(1, m); t1 -= m; need -= m;
+      if (need > 0) { m = Math.min(need, t2); sell(2, m); t2 -= m; need -= m; }
+      if (need > 0) { m = Math.min(need, t3); sell(3, m); t3 -= m; need -= m; }
       if (need > 1e-6) {
         dead = true; fails++; failAges.push(p.age0 + y);
         const part = rate * (1 - need / w);
@@ -697,7 +728,15 @@ function simulate(p, lite) {
       if (rate / defl < mn) mn = rate / defl;
       if (!lite) { rateN[y * N + i] = rate; rateR[y * N + i] = rate / defl; }
       const before = t1 + t2 + t3;
+      const v1 = t1, v2 = t2, v3 = t3;
       t1 *= 1 + RC[y]; t2 *= 1 + RB[y]; t3 *= 1 + RE[y];
+      let vpNext = 0;
+      if (RT) {
+        // Advance lump sum: at most the year's gain, raises the cost basis, taxed the following year
+        const vp = (a, b) => Math.max(0, Math.min(a * bzE * 0.7, b - a));
+        const q1 = vp(v1, t1), q2 = vp(v2, t2), q3 = vp(v3, t3);
+        b1 += q1; b2 += q2; b3 += q3; vpNext = q1 + q2 + q3 * 0.7;
+      }
       idx *= 1 + RE[y]; if (idx > hi) hi = idx;
       defl *= 1 + IN[y];
       const total = t1 + t2 + t3;
@@ -706,25 +745,36 @@ function simulate(p, lite) {
 
       nextRate(st, p, total, before > 0 ? total / before - 1 : 0, IN[y], left, keep, defl);
 
+      if (RT) {
+        // Tax for the year (sales plus last year's advance lump sum), paid from Pot 1, if need be from Pots 2 and 3
+        const e = vpPend + pool - carry; carry = e < 0 ? -e : 0;
+        let tx = e > 0 ? TR * Math.max(0, e - FB) : 0;
+        if (y < 10) { tax10[i] += tx / defl; tax10N[i] += tx; }
+        for (const k of [1, 2, 3]) { if (tx <= 0) break;
+          if (k === 1) { const a = Math.min(tx, t1); b1 -= t1 > 0 ? b1 * a / t1 : 0; t1 -= a; tx -= a; }
+          else if (k === 2) { const a = Math.min(tx, t2); b2 -= t2 > 0 ? b2 * a / t2 : 0; t2 -= a; tx -= a; }
+          else { const a = Math.min(tx, t3); b3 -= t3 > 0 ? b3 * a / t3 : 0; t3 -= a; tx -= a; } }
+        vpPend = vpNext; pool = 0;
+      }
       const wn = st.base * 12 / keep;
       const tg1 = wn * geo(0, Math.min(p.y1, left));
       const tg2 = wn * geo(Math.min(p.y1, left), Math.min(p.y1 + p.y2, left));
       let gap1 = Math.max(0, tg1 - t1);
       if (idx >= 0.9 * hi) {
-        m = Math.min(gap1, t3); t3 -= m; t1 += m; gap1 -= m;
-        if (gap1 > 0) { m = Math.min(gap1, t2); t2 -= m; t1 += m; }
+        m = Math.min(gap1, t3); sell(3, m); t3 -= m; t1 += m; b1 += m; gap1 -= m;
+        if (gap1 > 0) { m = Math.min(gap1, t2); sell(2, m); t2 -= m; t1 += m; b1 += m; }
         const gap2 = Math.max(0, tg2 - t2);
-        m = Math.min(gap2, t3); t3 -= m; t2 += m;
+        m = Math.min(gap2, t3); sell(3, m); t3 -= m; t2 += m; b2 += m;
       } else {
-        m = Math.min(gap1, t2); t2 -= m; t1 += m; gap1 -= m;
-        if (gap1 > 0) { m = Math.min(gap1, t3); t3 -= m; t1 += m; }
+        m = Math.min(gap1, t2); sell(2, m); t2 -= m; t1 += m; b1 += m; gap1 -= m;
+        if (gap1 > 0) { m = Math.min(gap1, t3); sell(3, m); t3 -= m; t1 += m; b1 += m; }
       }
     }
     minRate[i] = dead ? 0 : mn;
     if (!dead && mn >= p.floor * p.net - 1e-6) floorOk++;
     if (!mdead && mmn >= p.floor * p.net - 1e-6) mixFloorOk++;
   }
-  return { Y, totR, totN, rateR, rateN, minRate, success: 1 - fails / N, mixSuccess: 1 - mixFails / N, floorSuccess: floorOk / N, mixFloor: mixFloorOk / N, failAges, start, wE };
+  return { Y, totR, totN, rateR, rateN, minRate, success: 1 - fails / N, mixSuccess: 1 - mixFails / N, floorSuccess: floorOk / N, mixFloor: mixFloorOk / N, failAges, start, wE, tax10, tax10N };
 }
 
 function pct(sorted, q) {
@@ -753,7 +803,7 @@ const WM_TXT = {
   fix: "The withdrawal rises with inflation every year, however markets perform. Easy to plan, but the money runs out sooner in bad futures.",
   dyn: "When markets do badly you withdraw a little less, when they do well a little more. This makes the plan considerably safer.",
 };
-const DEFAULTS = { cap: 700000, net: 1200, age0: 50, age1: 90, y1: 1, y2: 5, re: 5, rb: 2.75, rc: 1, vol: 16, inf: 2, tax: 16, ter: 0.3, idx: true, skip: false, guard: false, drop: 25, dcut: 10, dup: 10, dfloor: 75, dcap: 150, dnocap: true, "in-on": false, "in-age": 60, "in-amt": 100000, "out-on": false, "out-age": 65, "out-amt": 30000 };
+const DEFAULTS = { cap: 700000, net: 1200, age0: 50, age1: 90, y1: 1, y2: 5, re: 5, rb: 2.75, rc: 1, vol: 16, inf: 2, ter: 0.3, idx: true, skip: false, guard: false, drop: 25, dcut: 10, dup: 10, dfloor: 75, dcap: 150, dnocap: true, "in-on": false, "in-age": 60, "in-amt": 100000, "out-on": false, "out-age": 65, "out-amt": 30000 };
 const $ = id => document.getElementById(id);
 const nf0 = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat("en-GB", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
@@ -769,7 +819,7 @@ const fmts = {
   y1: v => v + (v == 1 ? " year" : " years"), y2: v => v == 0 ? "not used" : v + (v == 1 ? " year" : " years"),
   re: v => nf2.format(v) + "%", rb: v => nf2.format(v) + "%", rc: v => nf2.format(v) + "%",
   vol: v => v + "%", drop: v => "at most " + v + "%", dcut: v => "−" + v + "%", dup: v => "+" + v + "%",
-  dfloor: v => v + "%", dcap: v => v + "%", inf: v => nf2.format(v) + "%", tax: v => v + "%", ter: v => nf2.format(v) + "%",
+  dfloor: v => v + "%", dcap: v => v + "%", inf: v => nf2.format(v) + "%", ter: v => nf2.format(v) + "%",
 };
 const ranges = Object.keys(fmts);
 
@@ -780,7 +830,7 @@ function readParams(over) {
   return Object.assign({
     cap: v("cap"), net: v("net"), age0, age1: Math.max(v("age1"), age0 + 1),
     y1: v("y1"), y2: v("y2"), re: v("re") / 100, rb: v("rb") / 100, rc: v("rc") / 100,
-    vol: v("vol") / 100, corp: 0.4, inf: v("inf") / 100, tax: v("tax") / 100, ter: v("ter") / 100,
+    vol: v("vol") / 100, corp: 0.4, inf: v("inf") / 100, tax: 0, realTax: true, shift: true, gain0: 0.3, ter: v("ter") / 100,
     wmode: wmode === "dyn" ? "dyn" : gk ? "gk" : "fix", guard: gk,
     dcut: v("dcut") / 100, dup: v("dup") / 100, dfloor: v("dfloor") / 100,
     dcap: $("dnocap").checked ? Infinity : v("dcap") / 100,
@@ -996,8 +1046,9 @@ function render() {
   $("cmix-h").textContent = `A simple portfolio without pots, with ${Math.round(r.wE * 100)}% equities and rebalanced to that mix every year, succeeds with your settings in ${Math.round((rules ? r.mixFloor : r.mixSuccess) * 100)}% of futures (pots: ${main}%).`;
 
   // ---- Key figures
-  $("k-gross").textContent = eur10(r.start.w / 12);
-  $("k-gross-s").textContent = `at the start, of which about ${eur10(r.start.w / 12 - p.net)} is tax (capital gains tax and solidarity surcharge, allowance already deducted)`;
+  const tY = Math.min(10, Math.max(1, Y - 1)), tx10 = Float64Array.from(real ? r.tax10 : r.tax10N).sort();
+  $("k-gross").textContent = eur10(tx10[Math.floor(N / 2)] / (12 * tY));
+  $("k-gross-s").textContent = `average over the first ${tY} ${tY === 1 ? "year" : "years"}, typical case: capital gains tax, solidarity surcharge and advance lump sum, allowance already deducted`;
   $("k-cut-l").textContent = `Your withdrawal at ${a8}`;
   $("k-cut").textContent = eur10(pct(r8, 0.5));
   $("k-cut-s").textContent = p.wmode === "dyn" || rules ? `typical, ${unit} · bad ${eur10(pct(r8, 0.1))} · good ${eur10(pct(r8, 0.9))}` : `typical, ${unit}, as long as the money lasts`;
@@ -1020,6 +1071,7 @@ function render() {
   else rh += "The withdrawal rises with inflation. If it drops to €0, the money is used up.";
   $("rate-h").textContent = rh;
   const marks = [0, 5, 10, 20, 30].filter(k => k < Y).concat([Y - 1]).filter((v, i, a) => a.indexOf(v) === i);
+  last.ch = { ages, W, RT, rm, rl, rg, marks, shade: st ? st.eq.length : 0 };
   $("rate-tab").innerHTML = `<table><thead><tr><th>Age</th><th>If things go badly</th><th>Typical</th><th>If things go well</th></tr></thead><tbody>` +
     marks.map(k => `<tr><td>${p.age0 + k}</td><td>${eur10(RT.p10[k])}</td><td>${eur10(RT.p50[k])}</td><td>${eur10(RT.p90[k])}</td></tr>`).join("") + `</tbody></table>`;
 
@@ -1036,6 +1088,238 @@ function render() {
   $("s1").style.width = (t1 / pc * 100) + "%"; $("s2").style.width = (t2 / pc * 100) + "%"; $("s3").style.width = (t3 / pc * 100) + "%";
 }
 
+/* ---------- PDF report (small built-in PDF writer, Helvetica font, vector charts) ---------- */
+const PDFW = { r: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,556,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,556,556,333,556,537,278,333,556,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500], b: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,556,556,0,278,556,500,1000,556,556,333,1000,667,333,1000,0,611,0,0,278,278,500,500,350,556,1000,333,1000,556,333,944,0,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,556,556,333,611,556,278,333,556,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556] };
+const CP = { 0x20AC: 128, 0x201A: 130, 0x201E: 132, 0x2026: 133, 0x2018: 145, 0x2019: 146, 0x201C: 147, 0x201D: 148, 0x2022: 149, 0x2013: 150, 0x2014: 151, 0x2122: 153 };
+const CPREP = { 0x2212: "-", 0x2009: " ", 0x202F: " ", 0x2007: " ", 0x2248: "~", 0x2264: "<=", 0x2265: ">=", 0x2192: "->", 0x2713: "" };
+function pdfEnc(s) {
+  let o = "";
+  for (const ch of String(s)) { const c = ch.codePointAt(0);
+    if (c >= 32 && c < 127 || c >= 160 && c < 256) o += ch; else if (CP[c]) o += String.fromCharCode(CP[c]); else if (CPREP[c] != null) o += CPREP[c]; else if (c === 10) o += " "; else o += "?"; }
+  return o;
+}
+class Pdf {
+  constructor() { this.W = 595.28; this.H = 841.89; this.pages = []; this.add(); }
+  add() { this.c = []; this.pages.push(this.c); }
+  tw(s, size, bold) { const t = PDFW[bold ? "b" : "r"]; let w = 0; for (const ch of pdfEnc(s)) w += t[ch.charCodeAt(0) - 32] || 556; return w * size / 1000; }
+  col(c) { return c.map(v => (v / 255).toFixed(3)).join(" "); }
+  text(x, y, s, o = {}) {
+    const size = o.size || 9.5, b = !!o.bold, e = pdfEnc(s); let xx = x;
+    if (o.align === "right") xx = x - this.tw(s, size, b); else if (o.align === "center") xx = x - this.tw(s, size, b) / 2;
+    const esc = e.replace(/[\\()]/g, m => "\\" + m).replace(/[\x80-\xff]/g, m => "\\" + m.charCodeAt(0).toString(8).padStart(3, "0"));
+    this.c.push(`BT /F${b ? 2 : 1} ${size} Tf ${this.col(o.color || [20, 32, 48])} rg ${xx.toFixed(2)} ${(this.H - y).toFixed(2)} Td (${esc}) Tj ET`);
+  }
+  wrap(s, maxw, size, bold) {
+    const out = []; let line = "";
+    for (let w of String(s).split(/\s+/).filter(Boolean)) {
+      while (this.tw(w, size, bold) > maxw && w.length > 1) { let k = w.length - 1; while (k > 1 && this.tw(w.slice(0, k), size, bold) > maxw) k--; if (line) { out.push(line); line = ""; } out.push(w.slice(0, k)); w = w.slice(k); }
+      const t = line ? line + " " + w : w; if (this.tw(t, size, bold) > maxw && line) { out.push(line); line = w; } else line = t;
+    }
+    if (line) out.push(line); return out;
+  }
+  // Paragraph with bold and regular parts: segs = [[text, bold], ...]
+  rich(x, y, segs, maxw, o = {}) {
+    const size = o.size || 9, lh = o.lh || size * 1.4, sp = this.tw(" ", size), words = [];
+    segs.forEach(([t, b]) => String(t).split(/\s+/).filter(Boolean).forEach(w => words.push([w, b])));
+    let line = [], lw = 0;
+    const flush = () => { let xx = x; line.forEach(([w, b]) => { this.text(xx, y, w, { size, bold: b, color: b ? PC.ink : o.color || PC.ink }); xx += this.tw(w, size, b) + sp; }); line = []; lw = 0; y += lh; };
+    for (const [w, b] of words) { const ww = this.tw(w, size, b); if (line.length && lw + sp + ww > maxw) flush(); lw += (line.length ? sp : 0) + ww; line.push([w, b]); }
+    if (line.length) flush(); return y;
+  }
+  para(x, y, s, maxw, o = {}) { const size = o.size || 9.5, lh = o.lh || size * 1.35; for (const l of this.wrap(s, maxw, size, o.bold)) { this.text(x, y, l, o); y += lh; } return y; }
+  line(x1, y1, x2, y2, o = {}) { this.c.push(`q ${this.col(o.color || [214, 222, 232])} RG ${o.width || 0.6} w ${o.dash ? "[" + o.dash.join(" ") + "] 0 d" : ""} ${x1.toFixed(2)} ${(this.H - y1).toFixed(2)} m ${x2.toFixed(2)} ${(this.H - y2).toFixed(2)} l S Q`); }
+  rect(x, y, w, h, o = {}) { this.c.push(`q ${o.fill ? this.col(o.fill) + " rg" : ""} ${o.stroke ? this.col(o.stroke) + " RG 0.6 w" : ""} ${x.toFixed(2)} ${(this.H - y - h).toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re ${o.fill && o.stroke ? "B" : o.fill ? "f" : "S"} Q`); }
+  path(pts, o = {}) {
+    if (pts.length < 2) return;
+    const d = pts.map(([x, y], i) => `${x.toFixed(2)} ${(this.H - y).toFixed(2)} ${i ? "l" : "m"}`).join(" ");
+    this.c.push(`q ${o.fill ? this.col(o.fill) + " rg" : ""} ${o.stroke ? this.col(o.stroke) + " RG" : ""} ${o.width || 1} w 1 j ${o.dash ? "[" + o.dash.join(" ") + "] 0 d" : ""} ${d} ${o.fill ? "h f" : "S"} Q`);
+  }
+  bytes(title) {
+    const objs = [], n = this.pages.length;
+    objs[1] = "<< /Type /Catalog /Pages 2 0 R >>";
+    objs[2] = `<< /Type /Pages /Count ${n} /Kids [${this.pages.map((_, i) => (6 + i * 2) + " 0 R").join(" ")}] >>`;
+    objs[3] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>";
+    objs[4] = "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>";
+    objs[5] = `<< /Title (${pdfEnc(title).replace(/[\\()]/g, m => "\\" + m)}) /Producer (${pdfEnc(this.producer || "").replace(/[\\()]/g, m => "\\" + m)}) >>`;
+    this.pages.forEach((c, i) => {
+      const s = c.join("\n");
+      objs[6 + i * 2] = `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${this.W} ${this.H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${7 + i * 2} 0 R >>`;
+      objs[7 + i * 2] = `<< /Length ${s.length} >>\nstream\n${s}\nendstream`;
+    });
+    let out = "%PDF-1.4\n%\xe2\xe3\xcf\xd3\n"; const off = [];
+    for (let k = 1; k < objs.length; k++) { off[k] = out.length; out += `${k} 0 obj\n${objs[k]}\nendobj\n`; }
+    const xref = out.length;
+    out += `xref\n0 ${objs.length}\n0000000000 65535 f \n` + off.slice(1).map(o => String(o).padStart(10, "0") + " 00000 n \n").join("");
+    out += `trailer\n<< /Size ${objs.length} /Root 1 0 R /Info 5 0 R >>\nstartxref\n${xref}\n%%EOF`;
+    const u = new Uint8Array(out.length); for (let k = 0; k < out.length; k++) u[k] = out.charCodeAt(k) & 255; return u;
+  }
+}
+const PC = { pen: [222, 228, 234], ink: [20, 32, 48], muted: [86, 101, 119], line: [214, 222, 232], acc: [31, 95, 166], band: [210, 224, 240], bad: [185, 58, 44], good: [44, 122, 77], warn: [168, 106, 18], tint: [233, 238, 244] };
+function pdfChart(P, x, y, w, h, ages, sr, o) {
+  const vals = [].concat(...Object.values(sr).filter(Boolean).map(a => Array.isArray(a[0]) ? [].concat(...a) : a)).filter(isFinite);
+  let ymax = Math.max(1, ...vals, o.ref || 0) * 1.05; const step = niceStep(ymax / 4); ymax = Math.ceil(ymax / step) * step;
+  const L = 52, B = 18, a0 = ages[0], a1 = ages[ages.length - 1];
+  const xs = a => x + L + (a - a0) / Math.max(1, a1 - a0) * (w - L), ys = v => y + (1 - Math.min(Math.max(v, 0), ymax) / ymax) * (h - B);
+  for (let v = 0; v <= ymax + 1e-6; v += step) { P.line(x + L, ys(v), x + w, ys(v), { color: PC.line, width: 0.5 }); P.text(x + L - 6, ys(v) + 3, o.fmt(v), { size: 7.5, color: PC.muted, align: "right" }); }
+  const span = a1 - a0, tick = span > 30 ? 10 : span > 12 ? 5 : 2;
+  for (let a = Math.ceil(a0 / tick) * tick; a <= a1; a += tick) P.text(xs(a), y + h - 4, String(a), { size: 7.5, color: PC.muted, align: "center" });
+  if (o.shade) P.rect(x + L, y, xs(Math.min(a0 + o.shade, a1)) - x - L, h - B, { fill: [251, 240, 220] });
+  (o.marks || []).forEach(mk => { if (mk.age < a0 || mk.age > a1) return; P.line(xs(mk.age), y, xs(mk.age), y + h - B, { color: mk.type === "in" ? PC.good : PC.warn, width: 0.8, dash: [2, 2] }); });
+  const pts = a => a.map((v, i) => [xs(ages[i]), ys(v)]);
+  if (sr.area) { const ap = []; sr.area.forEach((v, k) => { if (k && sr.area[k - 1] <= 0 && v > 0) ap.push([xs(ages[k]), ys(0)]); ap.push([xs(ages[k]), ys(v)]); }); P.path(ap.concat([[xs(ages[ages.length - 1]), ys(0)], [xs(ages[0]), ys(0)]]), { fill: PC.pen }); }
+  if (sr.band) P.path(pts(sr.band[0]).concat(pts(sr.band[1]).reverse()), { fill: PC.band });
+  if (o.ref) { P.line(x + L, ys(o.ref), x + w, ys(o.ref), { color: PC.muted, width: 0.5, dash: [4, 3] }); }
+  if (sr.tot) P.path(pts(sr.tot), { stroke: PC.ink, width: 1.2, dash: [5, 3] });
+  if (sr.high) P.path(pts(sr.high), { stroke: PC.good, width: 1.1, dash: [1.5, 2] });
+  if (sr.low) P.path(pts(sr.low), { stroke: PC.bad, width: 1.1, dash: [4, 2.5] });
+  if (sr.mid) P.path(pts(sr.mid), { stroke: PC.acc, width: 1.8 });
+  return y + h;
+}
+function pdfLegend(P, x, y, items) {
+  for (const [kind, label] of items) {
+    if (kind === "band" || kind === "pen") P.rect(x, y - 6, 14, 7, { fill: kind === "pen" ? PC.pen : PC.band });
+    else { const st = { mid: { stroke: PC.acc, width: 1.8 }, low: { stroke: PC.bad, width: 1.1, dash: [4, 2.5] }, high: { stroke: PC.good, width: 1.1, dash: [1.5, 2] }, tot: { stroke: PC.ink, width: 1.2, dash: [5, 3] } }[kind]; P.path([[x, y - 2.5], [x + 14, y - 2.5]], st); }
+    P.text(x + 19, y, label, { size: 8, color: PC.muted }); x += 19 + P.tw(label, 8) + 16;
+  }
+}
+const tx = id => ($(id) ? $(id).textContent.trim() : "");
+const btxt = sel => { const b = document.querySelector(sel); return b ? b.innerText.replace(/\s*\n\s*/g, " · ").trim() : ""; };
+function pdfInputs() {
+  const p = last.p, r = last.r, pc = v => nf2.format(Math.round(v * 10000) / 100) + "%", S2 = [];
+  const sec = (t, rows) => S2.push([t, rows.filter(Boolean)]);
+  const rules = p.wmode !== "dyn" && (p.skipLoss || p.guard);
+  sec("Plan", [["Starting capital", eur(p.cap)], ["Withdrawal per month", eur(p.net) + " after tax, in today's purchasing power"], ["Period", `from ${p.age0} to ${p.age1}`]]);
+  sec("Withdrawal", [["Rule", p.wmode === "dyn"
+      ? `flexible, at most −${Math.round(p.dcut * 100)}% or +${Math.round(p.dup * 100)}% per year, never below ${Math.round(p.dfloor * 100)}% (${eur10(p.net * p.dfloor)})` + (isFinite(p.dcap) ? `, never above ${Math.round(p.dcap * 100)}% (${eur10(p.net * p.dcap)})` : "") + (p.indexed ? ", limits in today's purchasing power" : ", without inflation adjustment")
+      : "fixed" + (p.indexed ? ", rises with inflation every year" : ", stays the same in the account") + (p.skipLoss ? ", not raised after loss years" : "") + (p.guard ? ", Guyton-Klinger guardrails" : "")],
+    rules && ["Assessment", `success only if the withdrawal never falls below ${eur10(p.net * p.floor)} in real terms`]]);
+  sec("One-off payments", p.flows.length ? p.flows.map(f => [f.type === "in" ? "Deposit" : "Withdrawal", `${eur(f.amt)} at ${f.age}, in today's purchasing power` + (f.type === "in" ? ", goes into Pot 3" : ", tax on the sale included")]) : [["", "none"]]);
+  const s0 = r.start;
+  sec("Pots", [["Pot 1 · money market ETF", `${fmts.y1(p.y1)} of withdrawals, ${eurR(s0.t1)} at the start`], ["Pot 2 · bonds", p.y2 ? `${fmts.y2(p.y2)} reserve, ${eurR(s0.t2)} at the start, about 60% government and 40% corporate bonds` : "not used"], ["Pot 3 · global equity ETF", `the rest, ${eurR(s0.t3)} at the start`],
+    ["Refilling", "once a year: from Pot 3 if equities are no more than 10% below their peak, otherwise from Pot 2"]]);
+  sec("Market", [["Assumptions", btxt(`[data-scen="${scen}"]`) + (p.model === "s" ? ", simple model" : ", realistic model")], ["Return per year", `equities ${pc(p.re)}, bonds ${pc(p.rb)}, money market ${pc(p.rc)}, at 2% inflation and before costs`], ["Equity volatility", pc(p.vol) + " per year"], ["Average inflation", pc(p.inf)], ["Ongoing costs", pc(p.ter) + " per year"],
+    ["Stress test", p.stress === "none" ? "none" : btxt(`[data-stress="${p.stress}"]`)]]);
+  sec("Taxes (fixed assumptions)", [["Capital gains tax and solidarity surcharge", "26.375% on gains, no church tax"], ["Partial exemption", "30% for the equity ETF, 0% for bonds and money market"], ["Saver's allowance", "€1,000 a year"], ["Advance lump sum", "every year, base rate 3.2%, follows inflation"], ["Unrealised gain at the start", "30% of Pot 3"]]);
+  return S2;
+}
+function pdfBuild() {
+  // Capture both views: today's purchasing power and account statement
+  const mode0 = mode, snap = m => { mode = m; render(); const o = { ch: last.ch, rateh: tx("rate-h"), sub: tx("subline") }; ["k-gross", "k-gross-s", "k-cut-l", "k-cut", "k-cut-s", "k-10", "k-10-s", "k-end-l", "k-end"].forEach(id => o[id] = tx(id)); return o; };
+  const SR = snap("real"), SN = snap("nom"); mode = mode0; render();
+  const P = new Pdf(), M = 48, CW = P.W - 2 * M, p = last.p, r = last.r;
+  P.producer = "Three-Pot Calculator";
+  const date = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  let y = 62;
+  P.text(M, y, "Three-Pot Calculator", { size: 20, bold: true }); y += 18;
+  P.text(M, y, `Report of ${date} · amounts in today's purchasing power and on the account statement · 2,000 possible futures`, { size: 9.5, color: PC.muted }); y += 22;
+  if (STRESS[p.stress]) { const ls = P.wrap(tx("stressbar"), CW - 20, 8.5); P.rect(M, y - 4, CW, ls.length * 11 + 10, { fill: [251, 240, 220] }); ls.forEach((l, i) => P.text(M + 10, y + 8 + i * 11, l, { size: 8.5, bold: true, color: PC.warn })); y += ls.length * 11 + 18; }
+  // Verdict
+  const main = parseInt($("meter").style.width) || 0, cls = $("pill").className.replace("pill", "").trim() || "good", vc = PC[cls];
+  P.rect(M, y - 13, P.tw(tx("pill"), 9, true) + 16, 18, { fill: cls === "good" ? [227, 242, 233] : cls === "warn" ? [251, 240, 220] : [251, 229, 225] }); P.text(M + 8, y, tx("pill"), { size: 9, bold: true, color: vc }); y += 24;
+  y = P.para(M, y, tx("headline"), CW, { size: 15, bold: true, lh: 19 }) + 2;
+  P.rect(M, y - 6, CW, 5, { fill: PC.tint }); P.rect(M, y - 6, CW * main / 100, 5, { fill: vc }); y += 12;
+  y = P.para(M, y, SR.sub, CW, { size: 9.5, color: PC.muted }) + 4;
+  if (tx("tip95")) y = P.para(M, y, tx("tip95"), CW, { size: 9, color: PC.muted }) + 4;
+  if (tx("stress-later")) y = P.para(M, y, tx("stress-later"), CW, { size: 9, color: PC.muted }) + 4;
+  y += 12;
+  // Key figures: today's purchasing power and account statement side by side
+  P.text(M, y, "Key figures", { size: 12, bold: true }); y += 10;
+  const c1 = M + CW * 0.62, c2 = M + CW;
+  P.rect(M, y, CW, 20, { fill: PC.tint });
+  P.text(M + 10, y + 13.5, "typical case", { size: 8.5, bold: true, color: PC.muted });
+  P.text(c1, y + 13.5, "today's purchasing power", { size: 8.5, bold: true, color: PC.muted, align: "right" });
+  P.text(c2 - 10, y + 13.5, "on the account statement", { size: 8.5, bold: true, color: PC.muted, align: "right" });
+  y += 20;
+  [["Tax per month", "k-gross"], [SR["k-cut-l"], "k-cut"], ["Portfolio after 10 years", "k-10"], [SR["k-end-l"], "k-end"]].forEach(([l, id]) => {
+    y += 20; P.text(M + 10, y, l, { size: 10 }); P.text(c1, y, SR[id], { size: 11, bold: true, align: "right" }); P.text(c2 - 10, y, SN[id], { size: 11, bold: true, align: "right", color: PC.acc });
+    y += 7; P.line(M, y, M + CW, y, { color: PC.line });
+  });
+  y += 12;
+  y = P.para(M, y, `Tax: ${SR["k-gross-s"]}. Withdrawal: ${SR["k-cut-s"]}. After 10 years: ${SR["k-10-s"]}.`, CW, { size: 7.5, color: PC.muted, lh: 9.5 }) + 16;
+  // Pots
+  P.text(M, y, "How to split the money at the start", { size: 12, bold: true }); y += 10;
+  const s0 = r.start, pcap = p.cap > 0 ? p.cap : 1, bw = (CW - 16) / 3, pcol = [[47, 111, 176], [44, 122, 77], [192, 96, 42]];
+  [["Pot 1 · money market ETF", s0.t1, `${fmts.y1(p.y1)} of withdrawals`], ["Pot 2 · bonds", s0.t2, p.y2 ? `${fmts.y2(p.y2)} reserve` : "not used"], ["Pot 3 · global equity ETF", s0.t3, "the rest"]].forEach(([n, v, d], k) => {
+    const x = M + k * (bw + 8); P.rect(x, y, bw, 52, { fill: PC.tint }); P.rect(x, y, bw, 3, { fill: pcol[k] });
+    P.text(x + 10, y + 17, n, { size: 8.5, bold: true, color: pcol[k] }); P.text(x + 10, y + 33, eurR(v), { size: 13, bold: true }); P.text(x + 10, y + 46, `${d} · ${Math.round(v / pcap * 100)}%`, { size: 8, color: PC.muted });
+  });
+  y += 66;
+  y = P.para(M, y, "For comparison: " + tx("cmix-h"), CW, { size: 8.5, color: PC.muted, lh: 11 });
+  // Charts: one page in today's purchasing power, one on the account statement
+  const charts = (S, title, isReal, rateh) => {
+    const c = S.ch; P.add(); y = 62;
+    P.text(M, y, title, { size: 14, bold: true }); y += 22;
+    P.text(M, y, "How your monthly withdrawal develops", { size: 12, bold: true }); y += 12;
+    y = pdfChart(P, M, y, CW, 190, c.ages, { mid: c.rm, low: c.rl, high: c.rg }, { fmt: v => eur(v), ref: p.net, shade: c.shade }) + 16;
+    pdfLegend(P, M, y, [["mid", "typical"], ["low", "poor (10% are worse)"], ["high", "good (10% are better)"]]); y += 14;
+    y = P.para(M, y, rateh, CW, { size: 8, color: PC.muted }) + 6;
+    const cx = [M + 10, M + CW * 0.45, M + CW * 0.7, M + CW - 10];
+    P.rect(M, y, CW, 18, { fill: PC.tint });
+    ["Age", "If things go badly", "Typical", "If things go well"].forEach((h, k) => P.text(cx[k], y + 12.5, h, { size: 8.5, bold: true, color: PC.muted, align: k ? "right" : "left" }));
+    y += 18;
+    c.marks.forEach(k => { y += 15; P.text(cx[0], y, String(p.age0 + k), { size: 9 }); [c.RT.p10[k], c.RT.p50[k], c.RT.p90[k]].forEach((v, j) => P.text(cx[j + 1], y, eur10(v), { size: 9, bold: j === 1, align: "right" })); y += 5; P.line(M, y, M + CW, y, { color: PC.line }); });
+    y += 22;
+    P.text(M, y, "How your wealth develops", { size: 12, bold: true }); y += 12;
+    y = pdfChart(P, M, y, CW, 210, c.ages, { band: [c.W.p25, c.W.p75], mid: c.W.p50, low: c.W.p10 }, { fmt: axisEur, ref: isReal ? p.cap : 0, shade: c.shade, marks: p.flows }) + 16;
+    pdfLegend(P, M, y, [["band", "50% of all futures lie here"], ["mid", "typical"], ["low", "poor (10% are worse)"]]); y += 14;
+    if (!isReal) P.para(M, y, "Amounts are in euros of each year, so they have grown with inflation.", CW, { size: 8, color: PC.muted });
+  };
+  charts(SR, "In today's purchasing power", true, SR.rateh);
+  charts(SN, "On the account statement", false, SN.rateh);
+  // Inputs
+  const rows = pdfInputs(), lw = 170;
+  P.add(); y = 62;
+  P.text(M, y, "Your inputs", { size: 12, bold: true }); y += 8;
+  for (const [t, rr] of rows) {
+    const h = 22 + rr.reduce((s, [, v]) => s + 12 * P.wrap(v, CW - lw, 9).length + 2, 0);
+    if (y + h > P.H - 60) { P.add(); y = 62; }
+    y += 16; P.text(M, y, t, { size: 9.5, bold: true, color: PC.acc }); P.line(M, y + 4, M + CW, y + 4, { color: PC.line }); y += 4;
+    for (const [k, v] of rr) { y += 12; P.text(M, y, k, { size: 9, color: PC.muted }); const ls = P.wrap(v, CW - lw, 9); ls.forEach((l, i) => P.text(M + lw, y + i * 12, l, { size: 9 })); y += 12 * (ls.length - 1) + 2; }
+  }
+  // Method and sources, taken from the page
+  const segsOf = el => { const s = []; el.childNodes.forEach(n => { if (n.nodeType === 3) s.push([n.textContent, false]); else if (n.nodeType === 1) s.push([n.textContent, n.tagName === "STRONG" || n.tagName === "B"]); }); return s; };
+  const ensure = h => { if (y + h > P.H - 60) { P.add(); y = 62; } };
+  const hgt = (segs, w, size) => P.wrap(segs.map(s => s[0]).join(" "), w, size).length * size * 1.4;
+  const nt = document.querySelector("details.notes");
+  if (nt) {
+    ensure(80); y += 22; P.text(M, y, "How is it calculated?", { size: 12, bold: true }); y += 18;
+    nt.querySelectorAll("p").forEach(pe => {
+      const links = pe.querySelectorAll("a");
+      if (links.length) {
+        ensure(40); P.text(M, y, "Sources", { size: 9, bold: true }); y += 13;
+        links.forEach(a => { const t = a.textContent.trim(), url = a.href; ensure(24); y = P.para(M, y, t, CW, { size: 8, lh: 10 }); y = P.para(M + 10, y, url, CW - 10, { size: 7, lh: 9.5, color: PC.acc }) + 3; });
+        return;
+      }
+      const segs = segsOf(pe); ensure(hgt(segs, CW, 8.5) + 4); y = P.rich(M, y, segs, CW, { size: 8.5, color: PC.muted }) + 5;
+    });
+  }
+  ensure(90); y += 12;
+  const disc = "This report is a model calculation with 2,000 randomly generated paths of markets and inflation, based on the assumptions you set. It is not a forecast, not investment, tax or legal advice, and does not replace personal advice. Tax follows current German law in simplified form with fixed assumptions; future changes in the law, product costs and personal circumstances can change the result considerably. Past returns are not a reliable guide to future returns.";
+  const dh = P.wrap(disc, CW - 20, 8.5).length * 12 + 30;
+  P.rect(M, y, CW, dh, { fill: PC.tint }); P.text(M + 10, y + 16, "Important note", { size: 9.5, bold: true }); P.para(M + 10, y + 30, disc, CW - 20, { size: 8.5, lh: 12, color: PC.muted });
+  // Footer
+  const n = P.pages.length;
+  P.pages.forEach((c, i) => { P.c = c; P.line(M, P.H - 40, P.W - M, P.H - 40, { color: PC.line }); P.text(M, P.H - 28, "A model calculation, not a forecast and not investment advice.", { size: 7.5, color: PC.muted }); P.text(P.W / 2 + 50, P.H - 28, "© 2026 Christopher Tremmel", { size: 7.5, color: PC.muted, align: "center" }); P.text(P.W - M, P.H - 28, `Page ${i + 1} of ${n}`, { size: 7.5, color: PC.muted, align: "right" }); });
+  return P.bytes("Three-Pot Calculator – report " + date);
+}
+let DL = null;
+async function pdfSave() {
+  const st = $("pdf-s"); st.textContent = "Creating PDF …";
+  await new Promise(r => setTimeout(r, 30));
+  let data; try { data = pdfBuild(); } catch (e) { st.textContent = "The PDF could not be created."; return; }
+  const filename = `Three-Pot-Report-${new Date().toISOString().slice(0, 10)}.pdf`;
+  if (DL) {
+    try { await DL.save({ filename, data }); st.textContent = "Saved."; }
+    catch (e) { const c = e && e.code; st.textContent = c === "declined" ? "Cancelled." : c === "rate_limited" ? "Please wait a moment and try again." : "Saving is not possible here."; if (["unavailable", "not_granted", "capability_disabled", "capability_removed"].includes(c)) $("pdf-b").hidden = true; }
+  } else {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: "application/pdf" })); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    st.textContent = "Saved.";
+  }
+  setTimeout(() => { if (st.textContent !== "Creating PDF …") st.textContent = ""; }, 6000);
+}
+$("pdf-b").addEventListener("click", pdfSave);
+if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(d => { DL = d; $("pdf-b").hidden = !d; }).catch(() => {});
+else $("pdf-b").hidden = false;
 /* ---------- Events ---------- */
 let raf = 0;
 const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(run); };
