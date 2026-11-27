@@ -1,5 +1,5 @@
 // Erst aus dem Netz (neueste Version), ohne Netz aus dem Speicher
-const V = "drei-toepfe-33726a5706";
+const V = "drei-toepfe-ac48294276";
 const FILES = ["./", "./index.html", "./en.html", "./manifest.webmanifest", "./manifest-en.webmanifest", "./icon-192.png", "./icon-512.png", "./icon-maskable.png", "./apple-touch-icon.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

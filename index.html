@@ -54,6 +54,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -246,7 +247,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
     <aside class="panel controls" aria-label="Einstellungen">
       <div class="ctl">
         <div class="ctl-head"><label for="cap">Dein Startkapital</label><output id="cap-o" for="cap"></output></div>
-        <input type="range" id="cap" min="100000" max="2000000" step="10000" value="700000">
+        <input type="range" id="cap" min="0" max="2000000" step="10000" value="700000">
       </div>
       <div class="ctl">
         <div class="ctl-head"><label for="net">Entnahme pro Monat</label><output id="net-o" for="net"></output></div>
@@ -255,7 +256,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
       </div>
       <div class="ctl">
         <div class="ctl-head"><label for="age0">Dein Alter beim Start</label><output id="age0-o" for="age0"></output></div>
-        <input type="range" id="age0" min="30" max="80" step="1" value="50">
+        <input type="range" id="age0" min="18" max="80" step="1" value="50">
       </div>
       <div class="ctl">
         <div class="ctl-head"><label for="age1">Das Geld soll reichen bis</label><output id="age1-o" for="age1"></output></div>
@@ -301,11 +302,11 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div class="subctl" id="in-c" hidden>
           <div class="ctl">
             <div class="ctl-head"><label for="in-age">Mit</label><output id="in-age-o" for="in-age"></output></div>
-            <input type="range" id="in-age" min="31" max="99" step="1" value="60">
+            <input type="range" id="in-age" min="18" max="99" step="1" value="60">
           </div>
           <div class="ctl">
             <div class="ctl-head"><label for="in-amt">Betrag</label><output id="in-amt-o" for="in-amt"></output></div>
-            <input type="range" id="in-amt" min="5000" max="1000000" step="5000" value="100000">
+            <input type="range" id="in-amt" min="0" max="1000000" step="5000" value="100000">
             <p class="hint">In heutiger Kaufkraft, nach Steuern. Das Geld kommt in Topf 3.</p>
           </div>
         </div>
@@ -313,11 +314,11 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div class="subctl" id="out-c" hidden>
           <div class="ctl">
             <div class="ctl-head"><label for="out-age">Mit</label><output id="out-age-o" for="out-age"></output></div>
-            <input type="range" id="out-age" min="31" max="99" step="1" value="65">
+            <input type="range" id="out-age" min="18" max="99" step="1" value="65">
           </div>
           <div class="ctl">
             <div class="ctl-head"><label for="out-amt">Betrag</label><output id="out-amt-o" for="out-amt"></output></div>
-            <input type="range" id="out-amt" min="5000" max="500000" step="5000" value="30000">
+            <input type="range" id="out-amt" min="0" max="500000" step="5000" value="30000">
             <p class="hint">In heutiger Kaufkraft, so viel brauchst du auf dem Konto. Die Steuer beim Verkauf ist eingerechnet. Das Geld kommt aus Topf 3, in Krisenjahren aus Topf 2.</p>
           </div>
         </div>
@@ -326,7 +327,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
       <details id="adv-d">
         <summary>Weitere Einstellungen für Fortgeschrittene</summary>
         <div class="adv">
-          <h3>Renditen pro Jahr (nach Kosten)</h3>
+          <h3>Renditen pro Jahr (vor Kosten)</h3>
           <div class="ctl">
             <div class="ctl-head"><label for="re">Aktien (Topf 3)</label><output id="re-o" for="re"></output></div>
             <input type="range" id="re" min="2" max="10" step="0.5" value="5">
@@ -339,6 +340,11 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
           <div class="ctl">
             <div class="ctl-head"><label for="rc">Geldmarkt (Topf 1)</label><output id="rc-o" for="rc"></output></div>
             <input type="range" id="rc" min="0" max="5" step="0.25" value="1">
+          </div>
+          <div class="ctl">
+            <div class="ctl-head"><label for="ter">Laufende Kosten (TER)</label><output id="ter-o" for="ter"></output></div>
+            <input type="range" id="ter" min="0" max="1.5" step="0.05" value="0.3">
+            <p class="hint">Gehen jedes Jahr von den Renditen aller drei Töpfe ab. Breit gestreute ETFs kosten etwa 0,1 bis 0,3 % im Jahr, aktive Fonds oft 1,5 % und mehr.</p>
           </div>
           <div class="ctl">
             <div class="ctl-head"><label for="vol">Schwankung der Aktien</label><output id="vol-o" for="vol"></output></div>
@@ -513,10 +519,10 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div style="display:grid;gap:8px;margin-top:10px">
           <p><strong>Ablauf:</strong> Jedes Jahr wird Topf 1 wieder aufgefüllt. Stehen die Aktien höchstens 10 % unter ihrem Höchststand, kommt das Geld aus Topf 3, und auch Topf 2 wird nachgefüllt. Stehen sie tiefer, kommt es aus Topf 2, und die Aktien bleiben unangetastet.</p>
           <p><strong>Flexible Rate:</strong> Die Rate wird jedes Jahr so angepasst, dass du wieder denselben Anteil des Depots entnimmst wie zum Start. Sie ändert sich aber nur in den gewählten Grenzen und fällt nie unter deine Untergrenze.</p>
-          <p><strong>Modell:</strong> Börsenjahre mit häufigeren Extremjahren, schwankende Inflation, und Anleihen fallen bei Inflationsschüben mit den Aktien, wie 2022. Lange Durststrecken zeigt der Härtetest.</p>
+          <p><strong>Modell:</strong> Börsenjahre mit häufigeren Extremjahren, schwankende Inflation, und Anleihen fallen bei Inflationsschüben mit den Aktien, wie 2022. Lange Durststrecken zeigt der Härtetest. Von allen Renditen gehen die laufenden Kosten ab.</p>
           <p><strong>Zum Vergleich:</strong> <span id="cmix-h"></span></p>
           <p><strong>Forschung:</strong> Eine Studie mit Daten aus 38 Ländern kommt auf eine sichere Entnahme von etwa 2,3 bis 3 % des Startkapitals pro Jahr. Töpfe bringen gegenüber einem einfachen, gemischten Depot keine zusätzliche Sicherheit; ihr Vorteil ist, dass man in Krisen ruhig bleibt. Flexible Raten machen einen Plan deutlich sicherer.</p>
-          <p><strong>Nicht enthalten:</strong> gesetzliche Rente, Kirchensteuer, größere Einmalausgaben. Modellrechnung, keine Prognose und keine Anlageberatung.</p>
+          <p><strong>Nicht enthalten:</strong> gesetzliche Rente, Kirchensteuer. Modellrechnung, keine Prognose und keine Anlageberatung.</p>
           <p>Quellen: <a href="https://experts.arizona.edu/en/publications/the-safe-withdrawal-rate-evidence-from-a-broad-sample-of-develope/" target="_blank" rel="noopener">Anarkulova u. a.</a> · <a href="https://blog.iese.edu/jestrada/files/2019/07/BucketApproach.pdf" target="_blank" rel="noopener">Estrada</a> · <a href="https://www.financialplanningassociation.org/article/journal/MAR06-decision-rules-and-maximum-initial-withdrawal-rates" target="_blank" rel="noopener">Guyton und Klinger</a> · <a href="https://www.morningstar.com/retirement/whats-safe-retirement-withdrawal-rate-2026" target="_blank" rel="noopener">Morningstar</a></p>
         </div>
       </details>
@@ -527,7 +533,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
 
 <script>
 /* ===================== ENGINE ===================== */
-const N = 2000, YMAX = 71;
+const N = 2000, YMAX = 83;
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function normals(seed, n) {
   const r = mulberry32(seed), out = new Float64Array(n);
@@ -539,7 +545,8 @@ function normals(seed, n) {
   return out;
 }
 const M = N * YMAX;
-const ZE = normals(20261026, M), ZB = normals(777, M), ZI = normals(4242, M);
+// Gleiche Startwerte und Anordnung wie im Einzahl- und Entnahmerechner: beide spielen dieselben Zukünfte durch
+const ZE = normals(20261126, M), ZB = normals(777, M), ZI = normals(4242, M);
 // Student-t mit 5 Freiheitsgraden, auf Varianz 1 skaliert (häufigere Extremjahre)
 const TE = (() => {
   const chi = normals(99, M * 5), out = new Float64Array(M), sc = Math.sqrt(3 / 5);
@@ -592,6 +599,7 @@ function genPath(p, i, Y) {
       // oder direkt ein gemischter Euro-Anleihenindex (bdMix)
       RB[y] = st.bd[ys] / 100 + (st.bdMix ? 0 : p.corp * (0.0075 + 0.15 * Math.min(0, eqShock)));
     }
+    const tc = p.ter || 0; RE[y] -= tc; RB[y] -= tc; RC[y] -= tc; // laufende Kosten (TER)
     IN[y] = inf; prev = inf;
   }
 }
@@ -622,11 +630,13 @@ function simulate(p, lite) {
   const minRate = new Float64Array(N);
   let fails = 0, mixFails = 0, floorOk = 0, mixFloorOk = 0; const failAges = [];
   const w0 = p.net * 12 / keep;
-  const s1 = Math.min(p.cap, w0 * geo(0, Math.min(p.y1, Y)));
-  const s2 = Math.min(p.cap - s1, w0 * geo(Math.min(p.y1, Y), Math.min(p.y1 + p.y2, Y)));
-  const start = { t1: s1, t2: s2, t3: p.cap - s1 - s2, w: w0 };
-  const iwr = w0 / p.cap;
-  const wE = start.t3 / p.cap, wB = start.t2 / p.cap, wC = start.t1 / p.cap;
+  const split = c => { const a = Math.min(c, w0 * geo(0, Math.min(p.y1, Y))); const b = Math.min(c - a, w0 * geo(Math.min(p.y1, Y), Math.min(p.y1 + p.y2, Y))); return { t1: a, t2: b, t3: c - a - b }; };
+  const sp = split(p.cap), s1 = sp.t1, s2 = sp.t2;
+  const start = { t1: s1, t2: s2, t3: sp.t3, w: w0 };
+  // without starting capital, the largest one-off deposit serves as the reference size
+  const base = p.cap > 0 ? p.cap : Math.max(1, ...(p.flows || []).filter(f => f.type === "in").map(f => f.amt));
+  const iwr = w0 / base, ws = split(base);
+  const wE = ws.t3 / base, wB = ws.t2 / base, wC = ws.t1 / base;
 
   for (let i = 0; i < N; i++) {
     genPath(p, i, Y);
@@ -743,7 +753,7 @@ const WM_TXT = {
   fix: "Die Rate steigt jedes Jahr mit der Inflation, egal wie die Börse läuft. Gut planbar, aber das Geld geht in schlechten Zukünften eher aus.",
   dyn: "Läuft die Börse schlecht, entnimmst du etwas weniger, läuft sie gut, etwas mehr. Das macht den Plan deutlich sicherer.",
 };
-const DEFAULTS = { cap: 700000, net: 1200, age0: 50, age1: 90, y1: 1, y2: 5, re: 5, rb: 2.75, rc: 1, vol: 16, inf: 2, tax: 16, idx: true, skip: false, guard: false, drop: 25, dcut: 10, dup: 10, dfloor: 75, dcap: 150, dnocap: true, "in-on": false, "in-age": 60, "in-amt": 100000, "out-on": false, "out-age": 65, "out-amt": 30000 };
+const DEFAULTS = { cap: 700000, net: 1200, age0: 50, age1: 90, y1: 1, y2: 5, re: 5, rb: 2.75, rc: 1, vol: 16, inf: 2, tax: 16, ter: 0.3, idx: true, skip: false, guard: false, drop: 25, dcut: 10, dup: 10, dfloor: 75, dcap: 150, dnocap: true, "in-on": false, "in-age": 60, "in-amt": 100000, "out-on": false, "out-age": 65, "out-amt": 30000 };
 const $ = id => document.getElementById(id);
 const nf0 = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 0 });
 const nf1 = new Intl.NumberFormat("de-DE", { maximumFractionDigits: 1, minimumFractionDigits: 0 });
@@ -759,7 +769,7 @@ const fmts = {
   y1: v => v + (v == 1 ? " Jahr" : " Jahre"), y2: v => v == 0 ? "nicht genutzt" : v + (v == 1 ? " Jahr" : " Jahre"),
   re: v => nf2.format(v) + " %", rb: v => nf2.format(v) + " %", rc: v => nf2.format(v) + " %",
   vol: v => v + " %", drop: v => "höchstens " + v + " %", dcut: v => "−" + v + " %", dup: v => "+" + v + " %",
-  dfloor: v => v + " %", dcap: v => v + " %", inf: v => nf2.format(v) + " %", tax: v => v + " %",
+  dfloor: v => v + " %", dcap: v => v + " %", inf: v => nf2.format(v) + " %", tax: v => v + " %", ter: v => nf2.format(v) + " %",
 };
 const ranges = Object.keys(fmts);
 
@@ -770,7 +780,7 @@ function readParams(over) {
   return Object.assign({
     cap: v("cap"), net: v("net"), age0, age1: Math.max(v("age1"), age0 + 1),
     y1: v("y1"), y2: v("y2"), re: v("re") / 100, rb: v("rb") / 100, rc: v("rc") / 100,
-    vol: v("vol") / 100, corp: 0.4, inf: v("inf") / 100, tax: v("tax") / 100,
+    vol: v("vol") / 100, corp: 0.4, inf: v("inf") / 100, tax: v("tax") / 100, ter: v("ter") / 100,
     wmode: wmode === "dyn" ? "dyn" : gk ? "gk" : "fix", guard: gk,
     dcut: v("dcut") / 100, dup: v("dup") / 100, dfloor: v("dfloor") / 100,
     dcap: $("dnocap").checked ? Infinity : v("dcap") / 100,
@@ -994,7 +1004,7 @@ function render() {
   if (Y >= 10) {
     let ok = 0; for (let i = 0; i < N; i++) if (r.totN[10 * N + i] >= p.cap) ok++;
     $("k-10").textContent = eurR(W.p50[10]);
-    $("k-10-s").textContent = `typisch · in ${Math.round(ok / N * 100)} % der Zukünfte noch mindestens ${eurR(p.cap)} auf dem Konto`;
+    $("k-10-s").textContent = p.cap > 0 ? `typisch · in ${Math.round(ok / N * 100)} % der Zukünfte noch mindestens ${eurR(p.cap)} auf dem Konto` : "typisch";
   } else { $("k-10").textContent = "–"; $("k-10-s").textContent = "Laufzeit kürzer als 10 Jahre"; }
   $("k-end-l").textContent = `Übrig mit ${p.age1}`;
   $("k-end").textContent = eurR(W.p50[Y]);
@@ -1018,12 +1028,12 @@ function render() {
     { fmt: axisEur, ref: p.cap, refLabel: "Startkapital " + eurR(p.cap), label: "Vermögensverlauf", stressYears: st ? st.eq.length : 0, marks: p.flows });
 
   // ---- Töpfe
-  const { t1, t2, t3 } = r.start;
+  const { t1, t2, t3 } = r.start, pc = p.cap > 0 ? p.cap : 1;
   $("p1").textContent = eurR(t1); $("p2").textContent = eurR(t2); $("p3").textContent = eurR(t3);
-  $("p1d").textContent = `${fmts.y1(p.y1)} Raten · ${Math.round(t1 / p.cap * 100)} %`;
-  $("p2d").textContent = p.y2 ? `${fmts.y2(p.y2)} Vorrat · ${Math.round(t2 / p.cap * 100)} %` : "nicht genutzt";
-  $("p3d").textContent = `der Rest · ${Math.round(t3 / p.cap * 100)} %`;
-  $("s1").style.width = (t1 / p.cap * 100) + "%"; $("s2").style.width = (t2 / p.cap * 100) + "%"; $("s3").style.width = (t3 / p.cap * 100) + "%";
+  $("p1d").textContent = `${fmts.y1(p.y1)} Raten · ${Math.round(t1 / pc * 100)} %`;
+  $("p2d").textContent = p.y2 ? `${fmts.y2(p.y2)} Vorrat · ${Math.round(t2 / pc * 100)} %` : "nicht genutzt";
+  $("p3d").textContent = `der Rest · ${Math.round(t3 / pc * 100)} %`;
+  $("s1").style.width = (t1 / pc * 100) + "%"; $("s2").style.width = (t2 / pc * 100) + "%"; $("s3").style.width = (t3 / pc * 100) + "%";
 }
 
 /* ---------- Ereignisse ---------- */
@@ -1078,7 +1088,6 @@ window.addEventListener("pagehide", appSave);
 appRestore();
 run();
 </script>
-
 
 <script>if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("sw.js");</script>
 </body>
