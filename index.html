@@ -216,6 +216,18 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
 #stress-h:empty, #stress-later:empty { display: none; }
 .stress-later { margin: 0; font-size: 0.9rem; font-weight: 600; background: var(--surface-2); border-radius: 9px; padding: 9px 12px; }
 .taxbox { background: var(--surface-2); border-left: 3px solid var(--accent); border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; }
+.lev { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; transition: opacity .2s; }
+.lev.busy { opacity: .45; }
+.lev li { display: block; }
+.levbtn { width: 100%; font: inherit; color: inherit; text-align: left; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; align-items: baseline; padding: 10px 12px; min-height: 44px; background: var(--surface-2); border: 1.5px solid transparent; border-radius: 9px; cursor: pointer; transition: border-color .15s, background .15s; }
+.levbtn:hover { border-color: var(--accent); }
+.levbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.levbtn::after { content: "Übernehmen ›"; grid-column: 1 / -1; font-size: 0.78rem; font-weight: 600; color: var(--accent); }
+.lev li b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.lev li b.up { color: var(--good); } .lev li b.dn { color: var(--bad); }
+.lev-undo { margin: 8px 0 0; font-size: 0.88rem; color: var(--muted); }
+.linkbtn { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: underline; }
+#lev-t { margin: 0 0 10px; }
 .pdfrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
 .pdfrow:has(.pdfbtn[hidden]) { display: none; }
 .pdfbtn { font: inherit; font-weight: 700; font-size: 0.9rem; padding: 9px 16px; min-height: 40px; border-radius: 9px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; justify-self: start; }
@@ -462,6 +474,13 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
         <div class="kpi"><span class="k" id="k-end-l"></span><span class="v" id="k-end"></span><span class="s">typischer Fall</span></div>
       </div>
 
+      <section class="panel" id="lev-p">
+        <h3 id="lev-t">Was dein Ergebnis am meisten verändert</h3>
+        <ul class="lev busy" id="lev"></ul>
+        <p class="hint" id="lev-h" style="margin-top:8px"></p>
+        <p class="lev-undo" id="lev-u" hidden><span id="lev-ut"></span> <button type="button" class="linkbtn" id="lev-ub">Rückgängig</button></p>
+      </section>
+
       <section class="panel">
         <div class="card-head"><h3>So entwickelt sich deine Monatsrate</h3></div>
         <div class="chart" id="ch-r"></div>
@@ -633,7 +652,8 @@ function nextRate(s, p, total, portRet, inf, left, keep, defl) {
   }
 }
 
-function simulate(p, lite) {
+function simulate(p, lite, n) {
+  const NN = lite && n ? Math.min(n, N) : N;
   const Y = Math.max(1, p.age1 - p.age0);
   const RT = !!p.realTax, keep = RT ? 1 : 1 - p.tax;
   // Steuer wie im echten Depot, mit festen Annahmen: Abgeltungsteuer und Soli, Teilfreistellung 30 % beim Aktien-ETF,
@@ -654,7 +674,7 @@ function simulate(p, lite) {
   const iwr = w0 / base, ws = split(base);
   const wE = ws.t3 / base, wB = ws.t2 / base, wC = ws.t1 / base;
 
-  for (let i = 0; i < N; i++) {
+  for (let i = 0; i < NN; i++) {
     genPath(p, i, Y);
     // --- Drei Töpfe ---
     let t1 = s1, t2 = s2, t3 = start.t3, idx = 1, hi = 1, defl = 1, dead = false;
@@ -774,7 +794,7 @@ function simulate(p, lite) {
     if (!dead && mn >= p.floor * p.net - 1e-6) floorOk++;
     if (!mdead && mmn >= p.floor * p.net - 1e-6) mixFloorOk++;
   }
-  return { Y, totR, totN, rateR, rateN, minRate, success: 1 - fails / N, mixSuccess: 1 - mixFails / N, floorSuccess: floorOk / N, mixFloor: mixFloorOk / N, failAges, start, wE, tax10, tax10N };
+  return { Y, totR, totN, rateR, rateN, minRate, success: 1 - fails / NN, mixSuccess: 1 - mixFails / NN, floorSuccess: floorOk / NN, mixFloor: mixFloorOk / NN, failAges, start, wE, tax10, tax10N };
 }
 
 function pct(sorted, q) {
@@ -1000,6 +1020,7 @@ function run() {
   if (STRESS[p.stress]) later = [10, 20].filter(o => p.age0 + o < p.age1 - 5).map(o => ({ age: p.age0 + o, r: simulate(readParams({ off: o }), true) }));
   last = { p, r, r95, later };
   render();
+  levStart();
 }
 function verdictClass(sc) { return sc >= 90 ? ["good", "Sehr solide"] : sc >= 80 ? ["good", "Solide"] : sc >= 65 ? ["warn", "Knapp"] : ["bad", "Riskant"]; }
 function rateAt(r, k, real) { const a = real ? r.rateR : r.rateN; return Float64Array.from({ length: N }, (_, i) => a[k * N + i]).sort(); }
@@ -1087,6 +1108,96 @@ function render() {
   $("p3d").textContent = `der Rest · ${Math.round(t3 / pc * 100)} %`;
   $("s1").style.width = (t1 / pc * 100) + "%"; $("s2").style.width = (t2 / pc * 100) + "%"; $("s3").style.width = (t3 / pc * 100) + "%";
 }
+
+/* ---------- Stellschrauben: So kommst du in den grünen Bereich ---------- */
+// Jede Zeile ändert genau eine Einstellung und rechnet dieselben 2.000 Zukünfte neu. Grün heißt mindestens 80 % („Solide“).
+// Gerechnet wird in kleinen Schritten nach dem Ergebnis, damit die Seite nicht hängt; eine neue Eingabe bricht die alte Rechnung ab.
+const GREEN = 0.8;
+let levTok = 0, levTimer = 0, LEVD = null, LEVUNDO = null;
+const levPct = s => nf1.format(Math.round(s * 1000) / 10) + " %";
+const levDiff = (s, b) => { const x = Math.round((Math.round(s * 1000) - Math.round(b * 1000))) / 10; return `${levPct(s)} (${x > 0 ? "+" : x < 0 ? "−" : "±"}${nf1.format(Math.abs(x))} Pkt.)`; };
+const levEsc = t => String(t).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+function levStart() { clearTimeout(levTimer); const tok = ++levTok; $("lev").classList.add("busy"); levTimer = setTimeout(() => levCompute(tok).catch(() => {}), 250); }
+async function levCompute(tok) {
+  const p = last.p, r = last.r, rules = p.wmode !== "dyn" && (p.skipLoss || p.guard), base = rules ? r.floorSuccess : r.success, C = 500, items = [];
+  const sim = async (o, n) => {
+    await new Promise(res => setTimeout(res, 0)); if (tok !== levTok) throw 0;
+    const q = Object.assign({}, p, o), x = simulate(q, true, n);
+    return q.wmode !== "dyn" && (q.skipLoss || q.guard) ? x.floorSuccess : x.success;
+  };
+  const dynO = { wmode: "dyn", guard: false, skipLoss: false, floor: p.dfloor };
+  let mode;
+  if (base >= GREEN) {
+    mode = base >= 0.995 ? "roomy" : "green";
+    if (mode === "roomy") {
+      const nn = Math.min(6000, Math.round(p.net * 1.1 / 50) * 50); items.push({ k: "net", v: nn, s: await sim({ net: nn }) });
+      if (p.cap > 0) { const c = Math.round(p.cap * 0.9 / 10000) * 10000; items.push({ k: "cap", v: c, s: await sim({ cap: c }) }); }
+    } else {
+      const nn = Math.max(200, Math.round(p.net * 0.9 / 50) * 50); items.push({ k: "net", v: nn, s: await sim({ net: nn }) });
+      if (p.wmode !== "dyn") items.push({ k: "dyn", s: await sim(dynO) });
+      if (p.cap > 0) { const c = Math.min(2e6, Math.round(p.cap * 1.1 / 10000) * 10000); items.push({ k: "cap", v: c, s: await sim({ cap: c }) }); }
+    }
+    items.forEach(i => { i.ok = true; });
+  } else {
+    mode = "below";
+    if (p.wmode !== "dyn") { const s = await sim(dynO); items.push({ k: "dyn", s, ok: s >= GREEN }); }
+    { // höchste Monatsrate in 50-€-Schritten, mit der es noch grün ist
+      let lo = 150, hi = p.net;
+      while (hi - lo > 50) { const m = Math.round((lo + hi) / 100) * 50; if (m <= lo || m >= hi) break; if (await sim({ net: m }, C) >= GREEN) lo = m; else hi = m; }
+      let v = Math.max(200, lo), s = await sim({ net: v }), k = 0;
+      while (s < GREEN && v > 200 && k++ < 6) { v -= 50; s = await sim({ net: v }); }
+      items.push({ k: "net", v, s, ok: s >= GREEN && v < p.net });
+    }
+    if (p.cap > 0) { // kleinstes Startkapital in 10.000-€-Schritten, mit dem es grün wird
+      const top = 2e6;
+      if (await sim({ cap: top }, C) >= GREEN) {
+        let lo = p.cap, hi = top;
+        while (hi - lo > 10000) { const m = Math.round((lo + hi) / 20000) * 10000; if (m <= lo || m >= hi) break; if (await sim({ cap: m }, C) >= GREEN) hi = m; else lo = m; }
+        let s = await sim({ cap: hi }), k = 0; while (s < GREEN && hi < top && k++ < 6) { hi += 10000; s = await sim({ cap: hi }); }
+        items.push({ k: "cap", v: hi, s, ok: s >= GREEN });
+      } else items.push({ k: "cap", v: top, s: await sim({ cap: top }), ok: false });
+    }
+    items.sort((a, b) => b.ok - a.ok);
+  }
+  if (tok !== levTok) return;
+  renderLev({ mode, base, items, p });
+}
+function renderLev(d) {
+  const { mode, base, items, p } = d, below = mode === "below";
+  const L = {
+    dyn: i => below ? "Rate flexibel statt fest" : "Rate darf sich anpassen (flexibel)",
+    net: i => below ? (i.ok ? `Entnahme auf ${eur(i.v)} im Monat senken (${eur(p.net - i.v)} weniger)` : "Entnahme senken: reicht allein kaum") : `${eur(i.v)} statt ${eur(p.net)} im Monat`,
+    cap: i => below ? (i.ok ? `Startkapital auf ${eur(i.v)} erhöhen (${eur(i.v - p.cap)} mehr)` : "Mehr Startkapital: auch 2 Mio. € reichen allein nicht") : `Startkapital ${eur(i.v)} statt ${eur(p.cap)}`,
+  };
+  const labels = items.map(i => L[i.k](i));
+  $("lev").innerHTML = items.map((i, n) => {
+    const b = below ? (i.ok ? "" : "nur ") + levPct(i.s) : levDiff(i.s, base);
+    const cls = below ? (i.ok ? "up" : "") : (i.s - base > 0.0005 ? "up" : i.s - base < -0.0005 ? "dn" : "");
+    return `<li><button type="button" class="levbtn" data-li="${n}" title="Übernehmen"><span>${levEsc(labels[n])}</span><b class="${cls}">${levEsc(b)}</b></button></li>`;
+  }).join("");
+  $("lev").classList.remove("busy"); LEVD = { items, labels };
+  const found = items.some(i => i.ok);
+  $("lev-t").textContent = mode === "roomy" ? "Dein Plan hat Luft: So viel Spielraum ist da" : mode === "green" ? "Im grünen Bereich: So wird es noch sicherer" : found ? "So kommst du in den grünen Bereich" : "Allein reicht keine Stellschraube für Grün";
+  const st = STRESS[p.stress] ? " Gerechnet mit dem gewählten Härtetest." : "";
+  $("lev-h").textContent = !below ? `Jeweils nur eine Änderung, in genau denselben 2.000 Zukünften. Heute: ${levPct(base)}. Tippe eine Zeile an, um sie zu übernehmen.${st}`
+    : found ? `Jede grüne Zeile bringt das Ergebnis allein auf mindestens 80 %, ab da zeigt die Ampel „Solide“. Kombiniert reicht von jedem weniger. Gerechnet in denselben 2.000 Zukünften, heute ${levPct(base)}. Tippe eine Zeile an, um sie zu übernehmen.${st}`
+    : `Kombiniere mehrere Stellschrauben, zum Beispiel weniger entnehmen und flexibel entnehmen. Heute: ${levPct(base)}.${st}`;
+  $("lev-u").hidden = !LEVUNDO; if (LEVUNDO) $("lev-ut").textContent = `Übernommen: ${LEVUNDO.label}.`;
+}
+function applyLever(idx) {
+  if (!LEVD) return; const it = LEVD.items[idx]; if (!it) return;
+  LEVUNDO = { net: $("net").value, cap: $("cap").value, wmode, label: LEVD.labels[idx] };
+  if (it.k === "net") $("net").value = it.v; else if (it.k === "cap") $("cap").value = it.v; else if (it.k === "dyn") setWmode("dyn");
+  schedule();
+}
+function undoLever() {
+  const u = LEVUNDO; if (!u) return; LEVUNDO = null;
+  $("net").value = u.net; $("cap").value = u.cap; if (wmode !== u.wmode) setWmode(u.wmode);
+  schedule();
+}
+$("lev").addEventListener("click", e => { const b = e.target.closest(".levbtn"); if (b) applyLever(+b.dataset.li); });
+$("lev-ub").addEventListener("click", undoLever);
+document.querySelector(".controls").addEventListener("input", () => { LEVUNDO = null; });
 
 /* ---------- PDF-Auswertung (eigener kleiner PDF-Schreiber, Schrift Helvetica, Grafiken als Vektoren) ---------- */
 const PDFW = { r: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,556,556,0,222,556,333,1000,556,556,333,1000,667,333,1000,0,611,0,0,222,222,333,333,350,556,1000,333,1000,500,333,944,0,500,667,278,333,556,556,556,556,260,556,333,737,370,556,584,333,737,333,400,584,556,556,333,556,537,278,333,556,365,556,834,834,834,611,667,667,667,667,667,667,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,500,556,556,556,556,278,278,278,278,556,556,556,556,556,556,556,584,611,556,556,556,556,500,556,500], b: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,556,556,0,278,556,500,1000,556,556,333,1000,667,333,1000,0,611,0,0,278,278,500,500,350,556,1000,333,1000,556,333,944,0,500,667,278,333,556,556,556,556,280,556,333,737,370,556,584,333,737,333,400,584,556,556,333,611,556,278,333,556,365,556,834,834,834,611,722,722,722,722,722,722,1000,722,667,667,667,667,278,278,278,278,722,722,778,778,778,778,778,584,778,722,722,722,722,667,667,611,556,556,556,556,556,556,889,556,556,556,556,556,278,278,278,278,611,611,611,611,611,611,611,584,611,611,611,611,611,556,611,556] };
@@ -1244,7 +1355,15 @@ function pdfBuild() {
     P.text(x + 10, y + 17, n, { size: 8.5, bold: true, color: pcol[k] }); P.text(x + 10, y + 33, eurR(v), { size: 13, bold: true }); P.text(x + 10, y + 46, `${d} · ${Math.round(v / pcap * 100)} %`, { size: 8, color: PC.muted });
   });
   y += 66;
-  y = P.para(M, y, "Zum Vergleich: " + tx("cmix-h"), CW, { size: 8.5, color: PC.muted, lh: 11 });
+  y = P.para(M, y, "Zum Vergleich: " + tx("cmix-h"), CW, { size: 8.5, color: PC.muted, lh: 11 }) + 14;
+  // Stellschrauben
+  const lv = [...document.querySelectorAll("#lev li")].map(li => [li.querySelector("span") ? li.querySelector("span").textContent : "", li.querySelector("b") ? li.querySelector("b").textContent : "", li.querySelector("b") ? li.querySelector("b").className : ""]).filter(l => l[1]);
+  if (lv.length && !$("lev").classList.contains("busy")) {
+    if (y + 40 + lv.length * 24 > P.H - 60) { P.add(); y = 62; }
+    P.text(M, y, tx("lev-t"), { size: 12, bold: true }); y += 8;
+    lv.forEach(([a, b, c]) => { P.rect(M, y, CW, 20, { fill: PC.tint }); P.text(M + 10, y + 13.5, a, { size: 9.5 }); P.text(M + CW - 10, y + 13.5, b, { size: 9.5, bold: true, align: "right", color: c === "up" ? PC.good : c === "dn" ? PC.bad : PC.ink }); y += 24; });
+    P.para(M, y + 6, tx("lev-h").replace(/ Tippe eine Zeile an, um sie zu übernehmen\./, ""), CW, { size: 8, color: PC.muted });
+  }
   // Grafiken: eine Seite in heutiger Kaufkraft, eine auf dem Kontoauszug
   const charts = (S, title, isReal, rateh) => {
     const c = S.ch; P.add(); y = 62;
@@ -1305,7 +1424,7 @@ function pdfBuild() {
 let DL = null;
 async function pdfSave() {
   const st = $("pdf-s"); st.textContent = "PDF wird erstellt …";
-  await new Promise(r => setTimeout(r, 30));
+  for (let k = 0; k < 60 && $("lev").classList.contains("busy"); k++) await new Promise(r => setTimeout(r, 100));
   let data; try { data = pdfBuild(); } catch (e) { st.textContent = "Das PDF ließ sich nicht erstellen."; return; }
   const filename = `Drei-Toepfe-Auswertung-${new Date().toISOString().slice(0, 10)}.pdf`;
   if (DL) {
