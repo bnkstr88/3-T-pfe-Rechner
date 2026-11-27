@@ -70,7 +70,6 @@ header h1 {
 }
 header p { margin: 0; color: var(--muted); max-width: 68ch; }
 .lang { float: right; font-size: 0.9rem; font-weight: 600; color: var(--accent); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 4px 10px; background: var(--surface); }
-.copy { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 8px 0 4px; border-top: 1px solid var(--line); }
 .copy a { color: inherit; }
 @media (max-width: 480px) { .toggle { display: grid; width: 100%; } .toggle button { white-space: normal; } }
 .pots-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-size: 0.86rem; color: var(--muted); }
@@ -228,6 +227,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
 .lev-undo { margin: 8px 0 0; font-size: 0.88rem; color: var(--muted); }
 .linkbtn { font: inherit; font-weight: 700; color: var(--accent); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: underline; }
 #lev-t { margin: 0 0 10px; }
+.copy { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 8px 0 4px; border-top: 1px solid var(--line); }
 .pdfrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
 .pdfrow:has(.pdfbtn[hidden]) { display: none; }
 .pdfbtn { font: inherit; font-weight: 700; font-size: 0.9rem; padding: 9px 16px; min-height: 40px; border-radius: 9px; border: 1px solid var(--accent); background: transparent; color: var(--accent); cursor: pointer; justify-self: start; }
@@ -553,7 +553,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
       </details>
     </main>
   </div>
-  <footer class="copy">© 2026 Christopher Tremmel. Alle Rechte vorbehalten. · Modellrechnung, keine Anlageberatung.</footer>
+  <footer class="copy">© 2026 Christopher Tremmel. Alle Rechte vorbehalten. · Alle Angaben ohne Gewähr · Keine Steuer- oder Anlageberatung</footer>
 </div>
 
 <script>
@@ -1418,7 +1418,7 @@ function pdfBuild() {
   P.rect(M, y, CW, dh, { fill: PC.tint }); P.text(M + 10, y + 16, "Wichtiger Hinweis", { size: 9.5, bold: true }); P.para(M + 10, y + 30, disc, CW - 20, { size: 8.5, lh: 12, color: PC.muted });
   // Fußzeile
   const n = P.pages.length;
-  P.pages.forEach((c, i) => { P.c = c; P.line(M, P.H - 40, P.W - M, P.H - 40, { color: PC.line }); P.text(M, P.H - 28, "Modellrechnung, keine Prognose und keine Anlageberatung.", { size: 7.5, color: PC.muted }); P.text(P.W / 2 + 50, P.H - 28, "© 2026 Christopher Tremmel", { size: 7.5, color: PC.muted, align: "center" }); P.text(P.W - M, P.H - 28, `Seite ${i + 1} von ${n}`, { size: 7.5, color: PC.muted, align: "right" }); });
+  P.pages.forEach((c, i) => { P.c = c; P.line(M, P.H - 40, P.W - M, P.H - 40, { color: PC.line }); P.text(M, P.H - 28, "Alle Angaben ohne Gewähr · Keine Steuer- oder Anlageberatung", { size: 7.5, color: PC.muted }); P.text(P.W / 2 + 50, P.H - 28, "© 2026 Christopher Tremmel", { size: 7.5, color: PC.muted, align: "center" }); P.text(P.W - M, P.H - 28, `Seite ${i + 1} von ${n}`, { size: 7.5, color: PC.muted, align: "right" }); });
   return P.bytes("Drei-Töpfe-Rechner – Auswertung " + date);
 }
 let DL = null;

@@ -553,7 +553,7 @@ details.notes > summary { cursor: pointer; font-weight: 600; color: var(--accent
       </details>
     </main>
   </div>
-  <footer class="copy">© 2026 Christopher Tremmel. All rights reserved. · A model calculation, not investment advice.</footer>
+  <footer class="copy">© 2026 Christopher Tremmel. All rights reserved. · All information without guarantee · No tax or investment advice</footer>
 </div>
 
 <script>
@@ -1418,7 +1418,7 @@ function pdfBuild() {
   P.rect(M, y, CW, dh, { fill: PC.tint }); P.text(M + 10, y + 16, "Important note", { size: 9.5, bold: true }); P.para(M + 10, y + 30, disc, CW - 20, { size: 8.5, lh: 12, color: PC.muted });
   // Footer
   const n = P.pages.length;
-  P.pages.forEach((c, i) => { P.c = c; P.line(M, P.H - 40, P.W - M, P.H - 40, { color: PC.line }); P.text(M, P.H - 28, "A model calculation, not a forecast and not investment advice.", { size: 7.5, color: PC.muted }); P.text(P.W / 2 + 50, P.H - 28, "© 2026 Christopher Tremmel", { size: 7.5, color: PC.muted, align: "center" }); P.text(P.W - M, P.H - 28, `Page ${i + 1} of ${n}`, { size: 7.5, color: PC.muted, align: "right" }); });
+  P.pages.forEach((c, i) => { P.c = c; P.line(M, P.H - 40, P.W - M, P.H - 40, { color: PC.line }); P.text(M, P.H - 28, "All information without guarantee · No tax or investment advice", { size: 7.5, color: PC.muted }); P.text(P.W / 2 + 50, P.H - 28, "© 2026 Christopher Tremmel", { size: 7.5, color: PC.muted, align: "center" }); P.text(P.W - M, P.H - 28, `Page ${i + 1} of ${n}`, { size: 7.5, color: PC.muted, align: "right" }); });
   return P.bytes("Three-Pot Calculator – report " + date);
 }
 let DL = null;
